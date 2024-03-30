@@ -4,9 +4,23 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="style.css">
-    <script src="dist/go-pixel.js?key=test"></script>
+    <script src="dist/go-pixel.js?key=xxxxxxxxxxxxxxxx&domain=google.com"></script>
 </head>
 <body>
+    <h1>Go Pixel</h1>
+    <p>Go Pixel is a simple pixel tracking library.</p>
+    <p>It is a simple way to track user activity on your website.</p>
 
+    <script>
+        const TIMEOUT_IN_SECONDS = 2;
+
+        setTimeout(function() {
+            if (window.GoPixel) {
+                window.GoPixel.start();
+            } else {
+                console.log('GoPixel is not found.');
+            }
+        }, TIMEOUT_IN_SECONDS * 1000);
+    </script>
 </body>
 </html>

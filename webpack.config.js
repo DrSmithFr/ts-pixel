@@ -1,13 +1,12 @@
 const path = require('path');
 
 module.exports = {
+    mode: 'development',
     entry: './src/index.ts',
-
     output: {
         filename: 'go-pixel.js',
         path: path.resolve(__dirname, 'public/dist'),
     },
-
     module: {
         rules: [
             {
@@ -17,13 +16,10 @@ module.exports = {
             },
         ],
     },
-
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
-
     devtool: 'source-map',
-
     devServer: {
         watchFiles: path.join(__dirname, 'dist'),
         compress: true,

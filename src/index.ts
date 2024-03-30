@@ -1,20 +1,21 @@
-// Global variables for console debugging
+import {GoPixel} from "./tracking/go-pixel";
+import {bootstrap} from "./tracking/auto-loader-config";
+import {Logger} from "./logger";
 
-import {GoPixel} from "./go-pixel";
-import {loadConfiguration} from "./auto-loader-config";
-
-// declare global variables for console debugging
+// declare global variables in window object
+// This is necessary to access the library from outside the module
 declare global {
     interface Window {
         GoPixel: GoPixel | undefined;
     }
 }
 
-// Autoload the library
-const config = loadConfiguration();
-
-if (config) {
-    window.GoPixel = new GoPixel(config);
-} else {
-    console.warn('GoPixel: Library cannot be autoloaded. waiting for manual initialization.');
+try {
+    // Try to automatically initialize the library using the script tag
+    // If the script tag does not contain the necessary configuration, it will wait for manual initialization
+    bootstrap();
+} catch (e) {
+    Logger.error('GoPixel: Error during initialization', e);
 }
+
+
