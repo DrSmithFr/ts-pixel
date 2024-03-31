@@ -2,6 +2,15 @@ import {Logger} from "../../logger";
 import {Task, TaskFailurePolicy, TaskReturnCode} from "./task-manager";
 import {GoPixel} from "../go-pixel";
 
+/**
+ * This task sends events to the server by batches
+ * The task is limited by 10 FPS, to prevent the browser from being overloaded
+ *
+ * The task will skip if there are no events to send
+ * The task will retry on failure
+ *
+ * @param pixel
+ */
 export function sendEventTask(
     pixel: GoPixel,
 ): Task {

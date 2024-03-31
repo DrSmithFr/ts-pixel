@@ -1,5 +1,4 @@
 import {Logger} from "../../logger";
-import {HardFailureException, SilentFailureException} from "./exceptions";
 
 export enum TaskReturnCode {
     Success = 0,
@@ -62,6 +61,14 @@ export class TaskManager {
     private tasks: TaskRegistered[] = [];
     private subscription: number | undefined;
 
+    /**
+     * Add a task to the TaskLimiter
+     *
+     * The task will be executed at the specified FPS
+     * Task failure policy can be defined to handle task failures (default: TaskFailurePolicy.Retry)
+     *
+     * @param task
+     */
     public addTask(task: Task) {
         this.tasks.push({
             name: task.name,
@@ -73,6 +80,15 @@ export class TaskManager {
         });
     }
 
+    /**
+     * Start the TaskLimiter
+     *
+     * The TaskLimiter will start requestAnimationFrame to execute the tasks
+     *  - Tasks will be executed when the time elapsed is greater than the frame duration
+     *  - Tasks will be executed in the order they were added
+     *  - Tasks will be executed until the kill method is called
+     *
+     */
     public start() {
         this.logger.debug('TaskLimiter started');
 
@@ -133,20 +149,31 @@ export class TaskManager {
         this.subscription = requestAnimationFrame(taskWrapper);
     }
 
+    /**
+     * Apply the failure policy to the task
+     *
+     * This policy get applied when the task throw an error or return TaskReturnCode.Failure
+     *
+     * As task as run in a requestAnimationFrame:
+     *  - the task will be retried until the kill method is called
+     *  - Soft failure will only be logged
+     * @param task
+     * @private
+     */
     private applyFailurePolicy(task: TaskRegistered) {
         switch (task.failurePolicy) {
             case TaskFailurePolicy.Continue:
-                this.logger.error('Task failed, request continue');
-                break;
+                this.logger.error('Task failed, continue...', task);
+                return;
 
             case TaskFailurePolicy.Retry:
                 if (task.errors >= MAX_ERRORS) {
-                    this.logger.error('Task failed too many times');
+                    this.logger.error('Task failed too many times', task);
                     return this.kill();
                 }
 
-                this.logger.warn('Task failed, request retry');
-                break;
+                this.logger.warn('Task failed, retrying later...', task);
+                return;
 
             case TaskFailurePolicy.StopExecution:
             default:
@@ -155,6 +182,11 @@ export class TaskManager {
         }
     }
 
+    /**
+     * Stop the TaskLimiter
+     *
+     * This method will cancel the requestAnimationFrame
+     */
     public kill() {
         this.logger.info('killed');
 

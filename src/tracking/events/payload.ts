@@ -1,31 +1,44 @@
 import {WebEventPayload} from "./event";
 
+/**
+ * Payloads for device related data
+ * collected from the navigator object
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator)
+ */
 export const languagePayload = (new WebEventPayload())
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/language) */
     .setPayload('language', navigator.language)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/languages) */
     .setPayload('languages', navigator.languages);
 
+/**
+ * Payloads for screen related data
+ * collected from the screen, window and navigator object
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Screen)
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/devicePixelRatio)
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/maxTouchPoints)
+ */
 export const screenPayload = (new WebEventPayload())
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Screen/width) */
     .setPayload('width', screen.width)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Screen/height) */
     .setPayload('height', screen.height)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Screen/colorDepth) */
     .setPayload('color-depth', screen.colorDepth)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Screen/pixelDepth) */
     .setPayload('pixel-depth', screen.pixelDepth)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Window/devicePixelRatio) */
     .setPayload('pixel-ratio', window.devicePixelRatio)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/maxTouchPoints) */
     .setPayload('max-touch-points', navigator.maxTouchPoints);
 
+/**
+ * Payloads for cookies related data
+ * collected from the navigator object
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/cookieEnabled)
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/doNotTrack)
+ */
 export const cookiesPayload = (new WebEventPayload())
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/cookieEnabled) */
     .setPayload('enabled', navigator.cookieEnabled)
-    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/doNotTrack) */
     .setPayload('do-not-track', Boolean(navigator.doNotTrack));
 
+/**
+ * Payloads for page location
+ * collected from the window.location object
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Location)
+ */
 export const locationPayload = (new WebEventPayload())
     .setPayload('protocol', window.location.protocol)
     .setPayload('host', window.location.host)

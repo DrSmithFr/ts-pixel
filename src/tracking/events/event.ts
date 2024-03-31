@@ -1,14 +1,16 @@
 import {GoPixelContext} from "../go-pixel";
 
 /**
- * This interface provide a template tracking events.
+ * This interface provide a template for tracking events generation.
  */
 export interface WebEventFactory {
     create(): Promise<WebEvent> | WebEvent
 }
 
-// This type is used to define the payload of the event
-// It is a simple key-value object, and can be nested
+/**
+ * This class is used to define the payload of the event
+ * It is a simple key-value object, and can be nested
+ */
 export class WebEventPayload {
     [key: string]: any
 
@@ -25,6 +27,9 @@ export class WebEventPayload {
     }
 }
 
+/**
+ * This class is used to define a tracking event
+ */
 export class WebEvent {
     name: string
     payload: WebEventPayload | undefined
@@ -48,6 +53,11 @@ export class WebEvent {
     }
 }
 
+/**
+ * This function is used to clean up the payload before sending it to the server
+ * It removes all the undefined and null values from the payload
+ * It works recursively on nested payloads
+ */
 function cleanUp(payload: WebEventPayload): WebEventPayload {
     const cleaned: WebEventPayload = new WebEventPayload()
 

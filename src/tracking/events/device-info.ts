@@ -1,6 +1,15 @@
 import {WebEventPayload, WebEvent, WebEventFactory} from "./event";
 import {cookiesPayload, languagePayload, screenPayload} from "./payload";
 
+/**
+ * DeviceInfo is fired when the page is loaded
+ *
+ * It contains about:
+ * - User Agent
+ * - Language
+ * - Cookies
+ * - Screen
+ */
 export class DeviceInfoFactory implements WebEventFactory {
     public create() {
         const event = new WebEvent('device-info')
