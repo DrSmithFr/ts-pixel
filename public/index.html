@@ -14,7 +14,7 @@
     <script>
         console.log('index.html: waiting for document.load...');
         document.addEventListener('DOMContentLoaded', function() {
-            const TIMEOUT_MS = 800;
+            const TIMEOUT_MS = 10 * 1000; // 10 seconds
 
             console.log('index.html: waiting for ' + TIMEOUT_MS + 'ms before starting GoPixel...');
 

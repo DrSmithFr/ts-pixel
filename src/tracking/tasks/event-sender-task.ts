@@ -1,6 +1,6 @@
 import {Logger} from "../../logger";
 import {Task, TaskFailurePolicy, TaskReturnCode} from "./task-manager";
-import {GoPixel} from "../go-pixel";
+import {GoPixel, GoPixelContext} from "../go-pixel";
 
 /**
  * This task sends events to the server by batches

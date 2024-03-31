@@ -1,4 +1,5 @@
 import {Logger} from "../../logger";
+import {GoPixelContext} from "../go-pixel";
 
 export enum TaskReturnCode {
     Success = 0,
@@ -57,8 +58,9 @@ const DEFAULT_FAILURE_POLICY = TaskFailurePolicy.Retry;
  */
 export class TaskManager {
     private logger: Logger = new Logger('TaskManager');
-
     private tasks: TaskRegistered[] = [];
+
+    // reference to cancel the last requestAnimationFrame
     private subscription: number | undefined;
 
     /**

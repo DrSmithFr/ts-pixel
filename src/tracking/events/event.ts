@@ -33,23 +33,21 @@ export class WebEventPayload {
 export class WebEvent {
     name: string
     payload: WebEventPayload | undefined
+    createdAt: Date;
 
-    public constructor(name: string) {
+    public constructor(name: string, payload: WebEventPayload) {
         this.name = name
-    }
-
-    public setPayload(payload: WebEventPayload): this {
+        this.createdAt = new Date()
         this.payload = cleanUp(payload)
-        return this
     }
 
-    // This method is used to convert the event to a JSON string
-    public json(context: GoPixelContext): string {
-        return JSON.stringify({
+    public object(context: GoPixelContext): object {
+        return {
             name: this.name,
             context: context,
-            payload: this.payload
-        })
+            payload: this.payload,
+            createdAt: this.createdAt.toISOString()
+        }
     }
 }
 

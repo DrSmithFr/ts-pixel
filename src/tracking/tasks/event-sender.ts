@@ -1,5 +1,6 @@
 import {WebEvent} from "../events/event";
 import {Logger} from "../../logger";
+import {GoPixelContext} from "../go-pixel";
 
 const API_URL = 'http://localhost:8080/events';
 
@@ -10,7 +11,16 @@ const API_URL = 'http://localhost:8080/events';
  */
 export class EventSender {
     private logger: Logger = new Logger('EventSender');
+
+    // reference to the pending request (internally used as lock)
     private request: Promise<Response> | undefined;
+
+    // reference to the context
+    private readonly context: GoPixelContext;
+
+    constructor(context: GoPixelContext) {
+        this.context = context;
+    }
 
     /**
      * Check if the sender is free to send events
@@ -30,7 +40,8 @@ export class EventSender {
 
     /**
      * Send events to the server
-     * @param events
+     * @param events {WebEvent[]}
+     * @param ctx {GoPixelContext}
      */
     async sendEvent(events: WebEvent[]): Promise<boolean> {
         if (events.length === 0) {
@@ -43,13 +54,16 @@ export class EventSender {
             return Promise.resolve(false);
         }
 
+        const serializedEvents = events.map((event) => event.object(this.context));
+        const json = JSON.stringify(serializedEvents)
+
         return new Promise((resolve, reject) => {
             this.request = fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(events)
+                body: json,
             });
 
             this

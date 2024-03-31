@@ -4,6 +4,7 @@ import {DeviceInfoFactory} from "./events/device-info";
 import {TaskManager} from "./tasks/task-manager";
 import {EventSender} from "./tasks/event-sender";
 import {sendEventTask} from "./tasks/event-sender-task";
+import {PageLoadFactory} from "./events/page-load";
 
 export type Uuid = string;
 
@@ -11,8 +12,8 @@ export type GoPixelContext = {
     client: Uuid,
     visitor: Uuid,
 
-    page: Uuid | undefined,
-    variant: Uuid | undefined,
+    page?: Uuid,
+    variant?: Uuid,
 }
 
 export type GoPixelConfig = {
@@ -31,6 +32,11 @@ export class GoPixel {
      * Global configuration for the library
      */
     public config: GoPixelConfig;
+
+    /**
+     * Context of the current visitor
+     */
+    public context: GoPixelContext|undefined = undefined;
 
     private factories: Map<string, WebEventFactory> = new Map<string, WebEventFactory>();
 
@@ -76,13 +82,19 @@ export class GoPixel {
         this.config = cfg;
         this.logger.debug('Initialized with config', cfg);
 
+        // creating context for the current visitor
+        this.context = {
+            visitor: 'unique-visitor-id', // todo: recover from local storage or cookie or create a new one
+            client: cfg.licence,
+        };
+
         // register all event factories
         this.registerFactory(EventName.DeviceInfo, new DeviceInfoFactory());
-        this.registerFactory(EventName.PageLoad, new DeviceInfoFactory());
+        this.registerFactory(EventName.PageLoad, new PageLoadFactory());
 
         // Creating TaskLimiter to handle parallel tasks
         this.tasks = new TaskManager();
-        this.sender = new EventSender();
+        this.sender = new EventSender(this.context);
     }
 
     /**
@@ -96,10 +108,8 @@ export class GoPixel {
         this.pushEvent(EventName.DeviceInfo);
         this.pushEvent(EventName.PageLoad);
 
-        // Registering EventSender task
-        const sender = sendEventTask(this);
-
-        this.tasks.addTask(sender);
+        // Starting the task manager
+        this.tasks.start();
     }
 
     /**
@@ -158,7 +168,10 @@ export class GoPixel {
      */
     public start() {
         this.isStarted = true;
-        this.tasks.start();
+
+        // Adding send event task to the task manager
+        const sender = sendEventTask(this);
+        this.tasks.addTask(sender);
     }
 
     /**
