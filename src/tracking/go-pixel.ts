@@ -1,6 +1,9 @@
 import {Logger} from "../logger";
 import {WebEvent, WebEventFactory} from "./events/event";
 import {DeviceInfoFactory} from "./events/device-info";
+import {TaskManager} from "./tasks/task-manager";
+import {EventSender} from "./tasks/event-sender";
+import {sendEventTask} from "./tasks/event-sender-task";
 
 export type Uuid = string;
 
@@ -16,8 +19,6 @@ export type GoPixelConfig = {
     licence: string,
     domain: string,
 }
-
-const MAX_BUFFER_SIZE = 1000;
 
 
 enum EventName {
@@ -43,7 +44,24 @@ export class GoPixel {
      * @type {WebEvent[]}
      * @private
      */
-    private buffer: WebEvent[] = [];
+    buffer: WebEvent[] = [];
+
+    // This is the maximum size of the buffer
+    // If the buffer is full, the events will be dropped
+    static MAX_BUFFER_SIZE = 1000;
+
+    /**
+     * Recurrent tasks to limit by FPS
+     *
+     * They are used to limit the number of send events calls
+     * They are used to prevent the browser from being overloaded (using requestAnimationFrame)
+     *
+     * @type {TaskManager[]}
+     * @private
+     */
+    private tasks: TaskManager;
+
+    sender: EventSender;
 
     /**
      * Flag to check if the library should start sending events
@@ -51,16 +69,37 @@ export class GoPixel {
      */
     private isStarted: boolean = false;
 
+    // Logger to log messages to the console
+    private logger: Logger = new Logger('GoPixel');
+
     constructor(cfg: GoPixelConfig) {
         this.config = cfg;
+        this.logger.debug('Initialized with config', cfg);
 
         // register all event factories
         this.registerFactory(EventName.DeviceInfo, new DeviceInfoFactory());
         this.registerFactory(EventName.PageLoad, new DeviceInfoFactory());
 
+        // Creating TaskLimiter to handle parallel tasks
+        this.tasks = new TaskManager();
+        this.sender = new EventSender();
+    }
+
+    /**
+     * Starting collecting events in local buffer
+     * until user gives consent to tracking,
+     * only then we will start sending events
+     * @private
+     */
+    public init() {
         // Sending basic events
         this.pushEvent(EventName.DeviceInfo);
         this.pushEvent(EventName.PageLoad);
+
+        // Registering EventSender task
+        const sender = sendEventTask(this);
+
+        this.tasks.addTask(sender);
     }
 
     /**
@@ -73,7 +112,7 @@ export class GoPixel {
      */
     private registerFactory(name: EventName, factory: WebEventFactory): void {
         this.factories.set(name, factory);
-        Logger.debug('Registered event', name);
+        this.logger.debug('Registered event', name);
     }
 
     private getFactory(name: EventName): WebEventFactory | undefined {
@@ -106,8 +145,8 @@ export class GoPixel {
      * (Allow to track user activity before receiving consent to send data to the server)
      */
     public push(event: WebEvent) {
-        if (this.buffer.length >= MAX_BUFFER_SIZE) {
-            Logger.debug('Buffer is full. Dropping event', event);
+        if (this.buffer.length >= GoPixel.MAX_BUFFER_SIZE) {
+            this.logger.debug('Buffer is full. Dropping event', event);
             return;
         }
 
@@ -119,7 +158,7 @@ export class GoPixel {
      */
     public start() {
         this.isStarted = true;
-        Logger.log('Start sending events, awaiting events in buffer:', this.buffer.length);
+        this.tasks.start();
     }
 
     /**
@@ -130,8 +169,12 @@ export class GoPixel {
      */
     public kill(): void {
         this.isStarted = false;
+
+        this.tasks.kill();
+        this.logger.debug('Killed all subscriptions.');
+
         this.buffer = [];
-        Logger.log('Killed subscription and cleared buffer.');
+        this.logger.log('Cleared events buffer.');
     }
 
     /**
@@ -143,9 +186,9 @@ export class GoPixel {
      * If called before the library has started, it will return an empty array
      * @private
      */
-    private consume(): WebEvent[] {
+    public consume(): WebEvent[] {
         if (!this.isStarted) {
-            Logger.debug('Cannot consume events before the library has started');
+            this.logger.debug('Cannot consume events before the library has started');
             return [];
         }
 

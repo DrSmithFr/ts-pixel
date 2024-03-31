@@ -5,33 +5,41 @@
  * Usage: console wrapper with a prefix, to prepare for future logging level features.
  */
 export class Logger {
-    static PREFIX = 'GoPixel:';
+    private readonly prefix: string = '';
 
-    public static debug(message: string, ...optionalParams: any[]) {
-        console.debug(Logger.PREFIX + message, ...optionalParams);
+    constructor(
+        prefix?: string
+    ) {
+        if (prefix) {
+            this.prefix = prefix + ': ';
+        }
     }
 
-    public static log(message: string, ...optionalParams: any[]) {
-        console.log(Logger.PREFIX + message, ...optionalParams);
+    public debug(message: string, ...optionalParams: any[]) {
+        console.debug(this.prefix + message, ...optionalParams);
     }
 
-    public static info(message: string, ...optionalParams: any[]) {
-        console.info(Logger.PREFIX + message, ...optionalParams);
+    public log(message: string, ...optionalParams: any[]) {
+        console.log(this.prefix + message, ...optionalParams);
     }
 
-    public static error(message: string, ...optionalParams: any[]) {
-        console.error(Logger.PREFIX + message, ...optionalParams);
+    public info(message: string, ...optionalParams: any[]) {
+        console.info(this.prefix + message, ...optionalParams);
     }
 
-    public static warn(message: string, ...optionalParams: any[]) {
-        console.warn(Logger.PREFIX + message, ...optionalParams);
+    public error(message: string, ...optionalParams: any[]) {
+        console.error(this.prefix + message, ...optionalParams);
     }
 
-    public static time(label: string) {
-        console.time(Logger.PREFIX + label);
+    public warn(message: string, ...optionalParams: any[]) {
+        console.warn(this.prefix + message, ...optionalParams);
     }
 
-    public static timeEnd(label: string) {
-        console.timeEnd(Logger.PREFIX + label);
+    public time(label: string) {
+        console.time(this.prefix + label);
+    }
+
+    public timeEnd(label: string) {
+        console.timeEnd(this.prefix + label);
     }
 }

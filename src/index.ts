@@ -10,12 +10,18 @@ declare global {
     }
 }
 
+const log = new Logger('GoPixelIndex');
+
 try {
     // Try to automatically initialize the library using the script tag
     // If the script tag does not contain the necessary configuration, it will wait for manual initialization
+    log.time('Initialization')
     bootstrap();
+    log.timeEnd('Initialization')
 } catch (e) {
-    Logger.error('GoPixel: Error during initialization', e);
+    log.error('Initialization error:', e);
 }
 
-
+// Starting tracking outside off try-catch block
+// This is necessary delegate error handling to TaskLimiter
+window.GoPixel?.init();

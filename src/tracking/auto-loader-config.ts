@@ -25,15 +25,17 @@ import {Logger} from "../logger";
  * If the hostname is a subdomain, the domain will be the top-level domain.
  */
 export function bootstrap(): void {
+    const logger = new Logger('GoPixelBootstrap');
+
     if (navigator.doNotTrack === '1') {
-        Logger.info('GoPixel: Do Not Track is enabled. Tracking has been disabled.');
+        logger.warn('Do Not Track is enabled. Tracking has been disabled.');
         return;
     }
 
     const config = loadConfiguration();
 
     if (!config) {
-        Logger.info('GoPixel: No configuration found. Waiting for manual initialization.');
+        console.warn('No configuration found. Waiting for manual initialization.');
         return;
     }
 
@@ -42,34 +44,32 @@ export function bootstrap(): void {
 
 
 function loadConfiguration(): GoPixelConfig | undefined {
+    const logger = new Logger('GoPixelConfig');
     const script = document.currentScript;
 
     if (!script) {
-        Logger.error('Library was not loaded inside a script tag.');
-        return;
+        throw new Error('Library was not loaded inside a script tag.');
     }
 
     if (script instanceof SVGScriptElement) {
-        Logger.error('Library was load inside a SVGScriptElement.');
-        return;
+        throw new Error('Library was load inside a SVGScriptElement.');
     }
 
     const licence = loadConfigFromHTMLScriptElement(script, ['key', 'license']);
 
     if (licence === undefined) {
-        Logger.error('No licence key found.');
-        return;
+        throw new Error('No licence key found.');
     }
 
     let domain = loadConfigFromHTMLScriptElement(script, ['shop', 'domain']);
 
     if (domain === undefined) {
-        Logger.log('No app domain found. Guessing domain...');
+        logger.log('No app domain found. Guessing domain...');
 
         const hostname = window.location.hostname;
         domain = guessFirstLevelDomain(hostname);
 
-        Logger.log('Guessed domain ', domain);
+        logger.log('Guessed domain ', domain);
     }
 
     return {

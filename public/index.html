@@ -12,15 +12,21 @@
     <p>It is a simple way to track user activity on your website.</p>
 
     <script>
-        const TIMEOUT_IN_SECONDS = 2;
+        console.log('index.html: waiting for document.load...');
+        document.addEventListener('DOMContentLoaded', function() {
+            const TIMEOUT_MS = 800;
 
-        setTimeout(function() {
-            if (window.GoPixel) {
-                window.GoPixel.start();
-            } else {
-                console.log('GoPixel is not found.');
-            }
-        }, TIMEOUT_IN_SECONDS * 1000);
+            console.log('index.html: waiting for ' + TIMEOUT_MS + 'ms before starting GoPixel...');
+
+            setTimeout(function() {
+                if (window.GoPixel) {
+                    console.log('index.html: GoPixel is starting.');
+                    window.GoPixel.start();
+                } else {
+                    console.log('index.html: GoPixel is not found.');
+                }
+            }, TIMEOUT_MS);
+        });
     </script>
 </body>
 </html>
