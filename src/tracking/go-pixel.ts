@@ -1,5 +1,5 @@
 import {Logger} from "../logger";
-import {WebEvent, WebEventFactory, WebEventPayload} from "./events/event";
+import {WebEvent, WebEventFactory} from "./events/event";
 import {DeviceInfoFactory} from "./events/device-info";
 import {TaskManager} from "./tasks/task-manager";
 import {EventSender} from "./tasks/event-sender";
@@ -33,6 +33,9 @@ enum EventName {
     MouseInfo = 'mouse_info',
 }
 
+type ListenerFn = (event: any) => void;
+type ListenerRefList = Map<string, ListenerFn>;
+
 export class GoPixel {
     /**
      * Global configuration for the library
@@ -44,6 +47,16 @@ export class GoPixel {
      */
     public context: GoPixelContext | undefined = undefined;
 
+    /**
+     * List of all event factories
+     *
+     * The factories are used to generate events
+     * The factories are registered by name
+     * The factories can be overwritten
+     *
+     * @type {Map<string, WebEventFactory>}
+     * @private
+     */
     private factories: Map<string, WebEventFactory> = new Map<string, WebEventFactory>();
 
     /**
@@ -73,13 +86,46 @@ export class GoPixel {
      */
     private tasks: TaskManager;
 
+    /**
+     * Event sender to send events to the server
+     *
+     * The sender is responsible for sending events to the server
+     * The sender is limited to send one request at a time
+     * The sender is limited to send events in batches (batch size as no limit)
+     *
+     * @type {EventSender}
+     * @private
+     */
     sender: EventSender;
+
+    /**
+     * List of all event listeners
+     *
+     * The listeners are used to listen to events on the page
+     * The listeners are used to generate tracking events
+     *
+     * @type {Map<string, ListenerFn>}
+     * @private
+     */
+    listenerRegistry: ListenerRefList = new Map<string, ListenerFn>();
 
     /**
      * Flag to check if the library should start sending events
      * @private
      */
     private isStarted: boolean = false;
+
+    /**
+     * Flag to check if the library should stop sending events
+     * @private
+     */
+    private killSwitch: boolean = false;
+
+    /**
+     * Flag to check if the library has been initialized
+     * @private
+     */
+    private initialized: boolean = false;
 
     // Logger to log messages to the console
     private logger: Logger = new Logger('GoPixel');
@@ -103,7 +149,46 @@ export class GoPixel {
         this.tasks = new TaskManager();
         this.sender = new EventSender(this.context);
 
+        // Send all events before closing the page
+        this.sendEventBeforeUnload();
+    }
 
+    private sendEventBeforeUnload() {
+        window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
+            this.logger.debug('Destroying the library...');
+
+            if (this.killSwitch || !this.isStarted) {
+                // If the user has not given consent
+                // We should not send any data
+                return;
+            }
+
+            // Kill event recollection
+            this.tasks.kill();
+            this.logger.debug('Killed all subscriptions.');
+
+            if (this.buffer.length === 0) {
+                return;
+            }
+
+            // Prevent the page from closing
+            e.preventDefault();
+            this.logger.debug('Sent all events before closing the page.');
+
+            this
+                .sender
+                .sendEvent(this.consume())
+                .then(() => {
+                    this.logger.debug('Sent all events before closing the page.');
+                })
+                .catch((error) => {
+                    this.logger.error('Failed to send events before closing the page.', error);
+                })
+                .finally(() => {
+                    // Close the window after sending the events
+                    window.close();
+                });
+        });
     }
 
     /**
@@ -113,14 +198,11 @@ export class GoPixel {
      * @private
      */
     public init() {
-        // On page close, kill all subscriptions
-        window.addEventListener('beforeunload', () => {
-            this.tasks.kill();
-            this.logger.debug('Killed all subscriptions.');
+        if (this.initialized) {
+            throw new Error('GoPixel is already initialized');
+        }
 
-            this.sender.sendEvent(this.consume());
-            this.logger.debug('Sent all events before closing the page.');
-        });
+        this.initialized = true;
 
         // Sending basic events
         this.pushEvent(EventName.DeviceInfo);
@@ -135,11 +217,23 @@ export class GoPixel {
     private initEventListeners() {
         const logger = new Logger('EventListeners');
 
-        // Click event listener
-        window.addEventListener('click', (event) => {
+        this.listenerRegistry.set('click', (event: MouseEvent) => {
             logger.debug('Click event', event);
-            const target = event.target as HTMLElement;
             this.push(new WebEvent('mouse_click', payloadFromMouseEvent(event)));
+        });
+
+        // creating listeners
+        this.listenerRegistry.forEach((listener, event) => {
+            window.addEventListener(event, listener);
+            logger.debug('Added event listener', event);
+        });
+    }
+
+    private destroyEventListeners() {
+        // Remove all event listeners
+        this.listenerRegistry.forEach((listener, event) => {
+            window.removeEventListener(event, listener);
+            this.logger.debug('Removed event listener', event);
         });
     }
 
@@ -216,6 +310,9 @@ export class GoPixel {
 
         this.tasks.kill();
         this.logger.debug('Killed all subscriptions.');
+
+        this.destroyEventListeners();
+        this.logger.debug('Destroyed all event listeners.');
 
         this.buffer = [];
         this.logger.log('Cleared events buffer.');

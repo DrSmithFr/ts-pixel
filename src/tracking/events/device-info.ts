@@ -1,4 +1,4 @@
-import {WebEventPayload, WebEvent, WebEventFactory} from "./event";
+import {WebEvent, WebEventFactory, WebEventPayload} from "./event";
 import {cookiesPayload, languagePayload, screenPayload} from "./payload";
 
 /**

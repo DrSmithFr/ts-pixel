@@ -26,21 +26,21 @@ export class WebEventPayload {
  * This class is used to define a tracking event
  */
 export class WebEvent {
-    name: string
+    type: string
     payload: WebEventPayload | undefined
     createdAt: Date;
 
-    public constructor(name: string, payload: WebEventPayload) {
-        this.name = name
+    public constructor(type: string, payload: WebEventPayload) {
+        this.type = type
         this.createdAt = new Date()
         this.payload = cleanUp(payload)
     }
 
     public object(): object {
         return {
-            name: this.name,
+            type: this.type,
             payload: this.payload,
-            createdAt: this.createdAt.toISOString()
+            created_at: this.createdAt.toISOString()
         }
     }
 }

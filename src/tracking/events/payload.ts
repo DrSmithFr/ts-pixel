@@ -85,7 +85,7 @@ export function payloadFromHTMLElement(element: HTMLElement): WebEventPayload {
     return payload;
 }
 
-export function payloadAttrFromHTMLElement(element: HTMLElement): WebEventPayload|undefined {
+export function payloadAttrFromHTMLElement(element: HTMLElement): WebEventPayload | undefined {
     const payload = new WebEventPayload();
 
     for (let i = 0; i < element.attributes.length; i++) {
