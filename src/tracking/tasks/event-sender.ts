@@ -2,7 +2,7 @@ import {WebEvent} from "../events/event";
 import {Logger} from "../../logger";
 import {GoPixelContext} from "../go-pixel";
 
-const API_URL = 'http://localhost:8080/events';
+const API_URL = 'https://pixel.local/events';
 
 /**
  * This class is responsible for sending events to the server
@@ -41,7 +41,6 @@ export class EventSender {
     /**
      * Send events to the server
      * @param events {WebEvent[]}
-     * @param ctx {GoPixelContext}
      */
     async sendEvent(events: WebEvent[]): Promise<boolean> {
         if (events.length === 0) {
@@ -54,7 +53,18 @@ export class EventSender {
             return Promise.resolve(false);
         }
 
-        const serializedEvents = events.map((event) => event.object(this.context));
+        // creating body for the request
+        // injecting alteration context to the events
+        const serializedEvents = events
+            .map((event) => event.object())
+            .map((event) => {
+                return {
+                    ...event,
+                    alteration: this.context.alteration,
+                };
+            });
+
+        // Serializing events to JSON
         const json = JSON.stringify(serializedEvents)
 
         return new Promise((resolve, reject) => {
@@ -62,6 +72,8 @@ export class EventSender {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-GoPixel-Id': this.context.visitor,
+                    'X-GoPixel-Licence': this.context.vendor,
                 },
                 body: json,
             });

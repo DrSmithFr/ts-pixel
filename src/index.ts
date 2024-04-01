@@ -17,9 +17,10 @@ try {
     // If the script tag does not contain the necessary configuration, it will wait for manual initialization
     log.time('Initialization')
     bootstrap();
-    log.timeEnd('Initialization')
 } catch (e) {
     log.error('Initialization error:', e);
+} finally {
+    log.timeEnd('Initialization')
 }
 
 // Starting tracking outside off try-catch block

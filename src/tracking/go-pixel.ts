@@ -5,15 +5,19 @@ import {TaskManager} from "./tasks/task-manager";
 import {EventSender} from "./tasks/event-sender";
 import {sendEventTask} from "./tasks/event-sender-task";
 import {PageLoadFactory} from "./events/page-load";
+import {v4 as uuidv4} from 'uuid';
 
 export type Uuid = string;
 
 export type GoPixelContext = {
-    client: Uuid,
+    vendor: Uuid,
     visitor: Uuid,
+    alteration?: AlterationContext
+}
 
-    page?: Uuid,
-    variant?: Uuid,
+export type AlterationContext = {
+    page: Uuid,
+    alter: Uuid,
 }
 
 export type GoPixelConfig = {
@@ -84,8 +88,8 @@ export class GoPixel {
 
         // creating context for the current visitor
         this.context = {
-            visitor: 'unique-visitor-id', // todo: recover from local storage or cookie or create a new one
-            client: cfg.licence,
+            visitor: uuidv4(), // todo: recover from local storage or cookie or create a new one
+            vendor: cfg.licence,
         };
 
         // register all event factories

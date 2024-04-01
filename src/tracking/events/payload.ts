@@ -6,8 +6,8 @@ import {WebEventPayload} from "./event";
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator)
  */
 export const languagePayload = (new WebEventPayload())
-    .setPayload('language', navigator.language)
-    .setPayload('languages', navigator.languages);
+    .set('language', navigator.language)
+    .set('languages', navigator.languages);
 
 /**
  * Payloads for screen related data
@@ -17,12 +17,12 @@ export const languagePayload = (new WebEventPayload())
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/maxTouchPoints)
  */
 export const screenPayload = (new WebEventPayload())
-    .setPayload('width', screen.width)
-    .setPayload('height', screen.height)
-    .setPayload('color-depth', screen.colorDepth)
-    .setPayload('pixel-depth', screen.pixelDepth)
-    .setPayload('pixel-ratio', window.devicePixelRatio)
-    .setPayload('max-touch-points', navigator.maxTouchPoints);
+    .set('width', screen.width)
+    .set('height', screen.height)
+    .set('color-depth', screen.colorDepth)
+    .set('pixel-depth', screen.pixelDepth)
+    .set('pixel-ratio', window.devicePixelRatio)
+    .set('max-touch-points', navigator.maxTouchPoints);
 
 /**
  * Payloads for cookies related data
@@ -31,8 +31,8 @@ export const screenPayload = (new WebEventPayload())
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Navigator/doNotTrack)
  */
 export const cookiesPayload = (new WebEventPayload())
-    .setPayload('enabled', navigator.cookieEnabled)
-    .setPayload('do-not-track', Boolean(navigator.doNotTrack));
+    .set('enabled', navigator.cookieEnabled)
+    .set('do-not-track', Boolean(navigator.doNotTrack));
 
 /**
  * Payloads for page location
@@ -40,10 +40,10 @@ export const cookiesPayload = (new WebEventPayload())
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Location)
  */
 export const locationPayload = (new WebEventPayload())
-    .setPayload('protocol', window.location.protocol)
-    .setPayload('host', window.location.host)
-    .setPayload('port', window.location.port)
-    .setPayload('hostname', window.location.hostname)
-    .setPayload('href', window.location.href)
-    .setPayload('origin', window.location.origin)
-    .setPayload('pathname', window.location.pathname);
+    .set('protocol', window.location.protocol)
+    .set('host', window.location.host)
+    .set('port', window.location.port)
+    .set('hostname', window.location.hostname)
+    .set('href', window.location.href)
+    .set('origin', window.location.origin)
+    .set('pathname', window.location.pathname);

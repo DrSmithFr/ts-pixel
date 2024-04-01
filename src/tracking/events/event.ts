@@ -1,5 +1,3 @@
-import {GoPixelContext} from "../go-pixel";
-
 /**
  * This interface provide a template for tracking events generation.
  */
@@ -12,17 +10,10 @@ export interface WebEventFactory {
  * It is a simple key-value object, and can be nested
  */
 export class WebEventPayload {
-    [key: string]: any
+    [key: string]: any | WebEventPayload
 
-    public setPayload(key: string, value: any | WebEventPayload): this {
-        if (value instanceof WebEventPayload) {
-            value = cleanUp(value)
-        }
-
-        if (value === undefined || value === null) {
-            this[key] = value
-        }
-
+    public set(key: string, value: any | WebEventPayload): this {
+        this[key] = value
         return this
     }
 }
@@ -41,10 +32,9 @@ export class WebEvent {
         this.payload = cleanUp(payload)
     }
 
-    public object(context: GoPixelContext): object {
+    public object(): object {
         return {
             name: this.name,
-            context: context,
             payload: this.payload,
             createdAt: this.createdAt.toISOString()
         }

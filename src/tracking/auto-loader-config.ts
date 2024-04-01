@@ -61,6 +61,11 @@ function loadConfiguration(): GoPixelConfig | undefined {
         throw new Error('No licence key found.');
     }
 
+    // Lossy check for licence key UUID format
+    if (licence.length !== 36) {
+        throw new Error('Invalid licence key.');
+    }
+
     let domain = loadConfigFromHTMLScriptElement(script, ['shop', 'domain']);
 
     if (domain === undefined) {

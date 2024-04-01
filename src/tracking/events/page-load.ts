@@ -13,10 +13,10 @@ import {locationPayload} from "./payload";
 export class PageLoadFactory implements WebEventFactory {
     public create() {
         const finalPayload = (new WebEventPayload())
-            .setPayload('user-agent', navigator.userAgent)
-            .setPayload('title', document.title)
-            .setPayload('referrer', document.referrer)
-            .setPayload('location', locationPayload);
+            .set('user-agent', navigator.userAgent)
+            .set('title', document.title)
+            .set('referrer', document.referrer)
+            .set('location', locationPayload);
 
         return new WebEvent('page-load', finalPayload);
     }

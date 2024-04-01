@@ -13,10 +13,10 @@ import {cookiesPayload, languagePayload, screenPayload} from "./payload";
 export class DeviceInfoFactory implements WebEventFactory {
     public create() {
         const finalPayload = (new WebEventPayload())
-            .setPayload('user-agent', navigator.userAgent)
-            .setPayload('language', languagePayload)
-            .setPayload('cookies', cookiesPayload)
-            .setPayload('screen', screenPayload);
+            .set('user-agent', navigator.userAgent)
+            .set('language', languagePayload)
+            .set('cookies', cookiesPayload)
+            .set('screen', screenPayload);
 
         return new WebEvent('device-info', finalPayload);
     }
