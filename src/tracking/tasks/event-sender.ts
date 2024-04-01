@@ -44,12 +44,11 @@ export class EventSender {
      */
     async sendEvent(events: WebEvent[]): Promise<boolean> {
         if (events.length === 0) {
-            this.logger.debug('No events to send.');
             return Promise.resolve(false);
         }
 
         if (this.request !== undefined) {
-            this.logger.debug('Sender is busy with another request.');
+            this.logger.warn('Sender is busy with another request.');
             return Promise.resolve(false);
         }
 

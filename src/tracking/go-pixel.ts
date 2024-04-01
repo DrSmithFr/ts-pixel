@@ -1,11 +1,12 @@
 import {Logger} from "../logger";
-import {WebEvent, WebEventFactory} from "./events/event";
+import {WebEvent, WebEventFactory, WebEventPayload} from "./events/event";
 import {DeviceInfoFactory} from "./events/device-info";
 import {TaskManager} from "./tasks/task-manager";
 import {EventSender} from "./tasks/event-sender";
-import {sendEventTask} from "./tasks/event-sender-task";
+import {sendEventTask} from "./tasks/task-send-event";
 import {PageLoadFactory} from "./events/page-load";
 import {v4 as uuidv4} from 'uuid';
+import {payloadFromMouseEvent} from "./events/payload";
 
 export type Uuid = string;
 
@@ -29,6 +30,7 @@ export type GoPixelConfig = {
 enum EventName {
     PageLoad = 'page_load',
     DeviceInfo = 'device_info',
+    MouseInfo = 'mouse_info',
 }
 
 export class GoPixel {
@@ -40,7 +42,7 @@ export class GoPixel {
     /**
      * Context of the current visitor
      */
-    public context: GoPixelContext|undefined = undefined;
+    public context: GoPixelContext | undefined = undefined;
 
     private factories: Map<string, WebEventFactory> = new Map<string, WebEventFactory>();
 
@@ -95,10 +97,13 @@ export class GoPixel {
         // register all event factories
         this.registerFactory(EventName.DeviceInfo, new DeviceInfoFactory());
         this.registerFactory(EventName.PageLoad, new PageLoadFactory());
+        this.registerFactory(EventName.PageLoad, new PageLoadFactory());
 
         // Creating TaskLimiter to handle parallel tasks
         this.tasks = new TaskManager();
         this.sender = new EventSender(this.context);
+
+
     }
 
     /**
@@ -108,12 +113,34 @@ export class GoPixel {
      * @private
      */
     public init() {
+        // On page close, kill all subscriptions
+        window.addEventListener('beforeunload', () => {
+            this.tasks.kill();
+            this.logger.debug('Killed all subscriptions.');
+
+            this.sender.sendEvent(this.consume());
+            this.logger.debug('Sent all events before closing the page.');
+        });
+
         // Sending basic events
         this.pushEvent(EventName.DeviceInfo);
         this.pushEvent(EventName.PageLoad);
 
+        this.initEventListeners();
+
         // Starting the task manager
         this.tasks.start();
+    }
+
+    private initEventListeners() {
+        const logger = new Logger('EventListeners');
+
+        // Click event listener
+        window.addEventListener('click', (event) => {
+            logger.debug('Click event', event);
+            const target = event.target as HTMLElement;
+            this.push(new WebEvent('mouse_click', payloadFromMouseEvent(event)));
+        });
     }
 
     /**
@@ -129,11 +156,11 @@ export class GoPixel {
         this.logger.debug('Registered event', name);
     }
 
-    private getFactory(name: EventName): WebEventFactory | undefined {
+    public getFactory(name: EventName | string): WebEventFactory | undefined {
         return this.factories.get(name);
     }
 
-    private pushEvent(name: EventName): void {
+    public pushEvent(name: EventName | string): void {
         const factory = this.getFactory(name);
 
         if (!factory) {

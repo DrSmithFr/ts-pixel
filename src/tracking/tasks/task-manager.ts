@@ -1,5 +1,4 @@
 import {Logger} from "../../logger";
-import {GoPixelContext} from "../go-pixel";
 
 export enum TaskReturnCode {
     Success = 0,
@@ -95,8 +94,6 @@ export class TaskManager {
         this.logger.debug('TaskLimiter started');
 
         const taskWrapper = () => {
-            this.logger.debug('Tick');
-
             const now = performance.now();
 
             for (const task of this.tasks) {
@@ -111,10 +108,6 @@ export class TaskManager {
                 if (elapsed < frameDuration) {
                     continue;
                 }
-
-                this.logger.debug('TaskLimiter: Task running:', task.name);
-                this.logger.time('animation-' + task.name);
-
 
                 task
                     .callback()
@@ -139,9 +132,6 @@ export class TaskManager {
                     .catch((e: Error) => {
                         task.errors++;
                         this.applyFailurePolicy(task);
-                    })
-                    .finally(() => {
-                        this.logger.timeEnd('animation-' + task.name);
                     });
             }
 

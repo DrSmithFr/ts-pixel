@@ -47,3 +47,74 @@ export const locationPayload = (new WebEventPayload())
     .set('href', window.location.href)
     .set('origin', window.location.origin)
     .set('pathname', window.location.pathname);
+
+export function payloadFromMouseEvent(event: MouseEvent): WebEventPayload {
+    const payload = (new WebEventPayload())
+        .set('x', event.clientX)
+        .set('y', event.clientY)
+        .set('pageX', event.pageX)
+        .set('pageY', event.pageY)
+        .set('screenX', event.screenX)
+        .set('screenY', event.screenY)
+        .set('button', event.button)
+        .set('buttons', event.buttons);
+
+    if (event.target) {
+        payload.set('target', payloadFromHTMLElement(event.target as HTMLElement));
+    }
+
+    return payload;
+}
+
+export function payloadFromHTMLElement(element: HTMLElement): WebEventPayload {
+    const payload = (new WebEventPayload())
+        .set('tag', element.tagName.toLocaleLowerCase())
+        .set('id', element.id)
+        .set('class', element.className)
+        .set('attr', payloadAttrFromHTMLElement(element))
+        .set('data', payloadDataFromHTMLElement(element));
+
+    // List of small enough tags to collect the text
+    const tagWhitelist = ['A', 'BUTTON', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN'];
+
+    if (tagWhitelist.includes(element.tagName)) {
+        payload
+            .set('text', element.innerText)
+    }
+
+    return payload;
+}
+
+export function payloadAttrFromHTMLElement(element: HTMLElement): WebEventPayload|undefined {
+    const payload = new WebEventPayload();
+
+    for (let i = 0; i < element.attributes.length; i++) {
+        const attr = element.attributes.item(i);
+        if (attr) {
+            payload.set(attr.name, attr.value);
+        }
+    }
+
+    if (payload.size() === 0) {
+        return undefined;
+    }
+
+    return payload;
+}
+
+export function payloadDataFromHTMLElement(element: HTMLElement): WebEventPayload | undefined {
+    const payload = new WebEventPayload();
+    const dataAttr = element.dataset;
+
+    for (const key in dataAttr) {
+        if (dataAttr.hasOwnProperty(key)) {
+            payload.set(`data-${key}`, dataAttr[key]);
+        }
+    }
+
+    if (payload.size() === 0) {
+        return undefined;
+    }
+
+    return payload;
+}

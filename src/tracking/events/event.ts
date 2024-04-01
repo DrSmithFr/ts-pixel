@@ -16,6 +16,10 @@ export class WebEventPayload {
         this[key] = value
         return this
     }
+
+    public size(): number {
+        return Object.keys(this).length
+    }
 }
 
 /**

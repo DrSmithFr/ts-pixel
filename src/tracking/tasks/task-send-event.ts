@@ -14,14 +14,14 @@ import {GoPixel, GoPixelContext} from "../go-pixel";
 export function sendEventTask(
     pixel: GoPixel,
 ): Task {
+    const logger = new Logger('sendEventTask');
+
     return {
         name: 'eventSender',
         fps: 10,
         failurePolicy: TaskFailurePolicy.Retry,
         callback: () => {
-            const logger = new Logger('sendEventTask');
-
-            return new Promise((resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 if (pixel.buffer.length === 0) {
                     // No events to send, task is done
                     resolve(TaskReturnCode.Skip);
@@ -37,19 +37,15 @@ export function sendEventTask(
                 //  - Events should be manually pushed back to the current buffer
                 const events = pixel.consume();
 
-                logger.time('sendEventsTask')
-
                 pixel
                     .sender
                     .sendEvent(events)
                     .then(() => {
-                        logger.timeEnd('sendEventsTask');
                         resolve(TaskReturnCode.Success);
                     })
                     .catch((error) => {
-                        // Re-add events to the current buffer
+                        logger.error('Failed to send events, adding events back to the buffer', error);
                         pixel.buffer.unshift(...events);
-                        logger.timeEnd('sendEventsTask');
                         reject(error);
                     });
             });
