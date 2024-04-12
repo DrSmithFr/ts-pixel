@@ -1,6 +1,6 @@
 /**
  * Logger class to log messages to the console.
- * The prefix is set to 'GoPixel:'.
+ * The prefix is set to 'Tracker:'.
  *
  * Usage: console wrapper with a prefix, to prepare for future logging level features.
  */

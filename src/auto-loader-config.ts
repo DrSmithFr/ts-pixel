@@ -1,11 +1,16 @@
-import {GoPixel, GoPixelConfig} from "./go-pixel";
-import {Logger} from "../logger";
+import {Tracker} from "./tracking/tracker";
+import {Logger} from "./utils/logger";
+
+export type LibraryConfig = {
+    licence: string,
+    domain: string,
+}
 
 /**
  * Load the configuration from the script tag.
  * If the configuration is found, the library will be initialized.
  *
- * Library can be accessed from the window object using the window.GoPixel variable.
+ * Library can be accessed from the window object using the window.Tracker variable.
  *
  * The configuration can be loaded from the script tag in two ways:
  *  - Either by using data attributes or by using query parameters.
@@ -25,7 +30,7 @@ import {Logger} from "../logger";
  * If the hostname is a subdomain, the domain will be the top-level domain.
  */
 export function bootstrap(): void {
-    const logger = new Logger('GoPixelBootstrap');
+    const logger = new Logger('Bootstrap');
 
     if (navigator.doNotTrack === '1') {
         logger.warn('Do Not Track is enabled. Tracking has been disabled.');
@@ -39,12 +44,12 @@ export function bootstrap(): void {
         return;
     }
 
-    window.GoPixel = new GoPixel(config);
+    window.GoPixel = new Tracker(config);
 }
 
 
-function loadConfiguration(): GoPixelConfig | undefined {
-    const logger = new Logger('GoPixelConfig');
+function loadConfiguration(): LibraryConfig | undefined {
+    const logger = new Logger('LibraryConfig');
     const script = document.currentScript;
 
     if (!script) {

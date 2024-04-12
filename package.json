@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@reactivex/rxjs": "^6.6.7",
     "@types/uuid": "^9.0.8",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.3",
@@ -21,6 +22,7 @@
     "webpack-dev-server": "^5.0.4"
   },
   "dependencies": {
+    "rxjs": "^7.8.1",
     "uuid": "^9.0.1"
   }
 }

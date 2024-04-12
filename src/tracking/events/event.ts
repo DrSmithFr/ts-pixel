@@ -1,8 +1,17 @@
+import {Payload} from "./payload";
+
 /**
- * This interface provide a template for tracking events generation.
+ * This enum is used to define common type of the events
  */
-export interface WebEventFactory {
-    create(): Promise<WebEvent> | WebEvent
+export enum EventType {
+    PageLoad = 'Common::PageLoad',
+    DeviceInfo = 'Common::DeviceInfo',
+    InteractionEnd = 'Common::InteractionEnd',
+
+    MouseEvent = 'Javascript::MouseEvent',
+    ClickEvent = 'Javascript::ClickEvent',
+
+    GtagEventPrefix = 'Gtag::',
 }
 
 /**
@@ -33,7 +42,7 @@ export class WebEvent {
     public constructor(type: string, payload: WebEventPayload) {
         this.type = type
         this.createdAt = new Date()
-        this.payload = cleanUp(payload)
+        this.payload = Payload.cleanUp(payload)
     }
 
     public object(): object {
@@ -43,27 +52,20 @@ export class WebEvent {
             created_at: this.createdAt.toISOString()
         }
     }
-}
 
-/**
- * This function is used to clean up the payload before sending it to the server
- * It removes all the undefined and null values from the payload
- * It works recursively on nested payloads
- */
-function cleanUp(payload: WebEventPayload): WebEventPayload {
-    const cleaned: WebEventPayload = new WebEventPayload()
-
-    for (const key in payload) {
-        if (payload.hasOwnProperty(key)) {
-            if (payload[key] instanceof WebEventPayload) {
-                cleaned[key] = cleanUp(payload[key])
-            } else {
-                if (payload[key] !== undefined && payload[key] !== null) {
-                    cleaned[key] = payload[key]
-                }
-            }
-        }
+    static pageLoad(): WebEvent {
+        return new WebEvent(EventType.PageLoad, Payload.pageLoad())
     }
 
-    return cleaned
+    static deviceInfo(): WebEvent {
+        return new WebEvent(EventType.DeviceInfo, Payload.deviceInfo())
+    }
+
+    static mouseInfo(event: MouseEvent): WebEvent {
+        return new WebEvent(EventType.MouseEvent, Payload.mouseInfo(event))
+    }
+
+    static interactionEnd(startAt: Date): WebEvent {
+        return new WebEvent(EventType.InteractionEnd, Payload.interactionEnd(startAt))
+    }
 }

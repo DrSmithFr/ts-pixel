@@ -1,12 +1,12 @@
-import {GoPixel} from "./tracking/go-pixel";
-import {bootstrap} from "./tracking/auto-loader-config";
-import {Logger} from "./logger";
+import {Tracker} from "./tracking/tracker";
+import {bootstrap} from "./auto-loader-config";
+import {Logger} from "./utils/logger";
 
 // declare global variables in window object
 // This is necessary to access the library from outside the module
 declare global {
     interface Window {
-        GoPixel: GoPixel | undefined;
+        GoPixel: Tracker | undefined;
     }
 }
 

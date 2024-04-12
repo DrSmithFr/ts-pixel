@@ -1,4 +1,4 @@
-# GoPixel
+# Tracker
 
 Simple tracking library.
 

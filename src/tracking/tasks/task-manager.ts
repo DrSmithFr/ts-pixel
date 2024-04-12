@@ -1,4 +1,6 @@
-import {Logger} from "../../logger";
+import {Logger} from "../../utils/logger";
+import {Observable} from "rxjs";
+import * as test from "node:test";
 
 export enum TaskReturnCode {
     Success = 0,
@@ -10,7 +12,7 @@ export enum TaskReturnCode {
  * TaskFn is used to define a function that can be executed by the TaskLimiter
  * It should return a Promise<boolean> to indicate if the task was successful
  */
-export type TaskFn = () => Promise<TaskReturnCode>;
+export type TaskFn = () => Observable<TaskReturnCode>;
 
 /**
  * Task is used to define a task that can be executed by the TaskLimiter
@@ -25,12 +27,13 @@ export type Task = {
 // internal type to wrap the task and store related information
 // lastTime is used know when the task needs to be executed
 // consecutive errors is used to know if the task is failing
-type TaskRegistered = {
+export type TaskRegistered = {
     name: string,
     fps: number,
     failurePolicy: TaskFailurePolicy,
     callback: TaskFn,
     lastTime: number
+    active: boolean
     errors: number
 }
 
@@ -67,18 +70,20 @@ export class TaskManager {
      *
      * The task will be executed at the specified FPS
      * Task failure policy can be defined to handle task failures (default: TaskFailurePolicy.Retry)
-     *
-     * @param task
      */
-    public addTask(task: Task) {
-        this.tasks.push({
+    public addTask(task: Task): TaskRegistered {
+        const taskRegistered: TaskRegistered = {
             name: task.name,
             fps: task.fps,
             failurePolicy: task.failurePolicy || DEFAULT_FAILURE_POLICY,
             callback: task.callback,
             lastTime: performance.now(),
             errors: 0,
-        });
+            active: true
+        };
+
+        this.tasks.push(taskRegistered);
+        return taskRegistered;
     }
 
     /**
@@ -97,8 +102,8 @@ export class TaskManager {
             const now = performance.now();
 
             for (const task of this.tasks) {
-                if (!task.lastTime) {
-                    throw new Error('Task lastTime is not defined.');
+                if (!task.active) {
+                    continue;
                 }
 
                 const elapsed = now - task.lastTime;
@@ -111,28 +116,30 @@ export class TaskManager {
 
                 task
                     .callback()
-                    .then((code: TaskReturnCode) => {
-                        task.lastTime = now;
-                        switch (code) {
-                            case TaskReturnCode.Success:
-                                // Reset the number of errors
-                                task.errors = 0;
-                                break;
+                    .subscribe(
+                        {
+                            next: (code: TaskReturnCode) => {
+                                task.lastTime = now;
+                                switch (code) {
+                                    case TaskReturnCode.Success:
+                                        // Reset the number of errors
+                                        task.errors = 0;
+                                        break;
 
-                            case TaskReturnCode.Skip:
-                                break;
+                                    case TaskReturnCode.Skip:
+                                        break;
 
-                            case TaskReturnCode.Failure:
-                            default:
-                                task.errors++;
+                                    case TaskReturnCode.Failure:
+                                    default:
+                                        this.applyFailurePolicy(task);
+                                }
+
+                            },
+                            error: (e: Error) => {
                                 this.applyFailurePolicy(task);
+                            }
                         }
-
-                    })
-                    .catch((e: Error) => {
-                        task.errors++;
-                        this.applyFailurePolicy(task);
-                    });
+                    );
             }
 
             this.subscription = requestAnimationFrame(taskWrapper);
@@ -153,6 +160,8 @@ export class TaskManager {
      * @private
      */
     private applyFailurePolicy(task: TaskRegistered) {
+        task.errors++;
+
         switch (task.failurePolicy) {
             case TaskFailurePolicy.Continue:
                 this.logger.error('Task failed, continue...', task);

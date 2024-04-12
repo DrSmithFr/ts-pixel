@@ -5,14 +5,14 @@
     <title>Title</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- Script to enable GoPixel -->
-    <script src="dist/go-pixel.js?key=018affd4-797d-78a1-b0b8-ba735226ec6b&domain=google.com" async></script>
-    <!-- Script to enable GoPixel -->
+    <!-- Script to enable Tracker -->
+    <script src="dist/go-pixel.js?key=018affd4-797d-78a1-b0b8-ba735226ec6b&consent=v2&domain=google.com" async></script>
+    <!-- Script to enable Tracker -->
 
 </head>
 <body>
 
-<!-- Script to start the GoPixel tracking -->
+<!-- Script to start the Tracker tracking -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -20,7 +20,7 @@
             .getElementById('btn-consent-given')
             .addEventListener('click', function () {
                 // start sending event on user consent given
-                // Sending all the data already collected by GoPixel
+                // Sending all the data already collected by Tracker
                 // (effectively starting the tracking sync between the client and the server)
                 window?.GoPixel.start();
 
@@ -31,8 +31,8 @@
         document
             .getElementById('btn-content-decline')
             .addEventListener('click', function () {
-                // Kill GoPixel on consent decline
-                // Removing everything that was collected by GoPixel
+                // Kill Tracker on consent decline
+                // Removing everything that was collected by Tracker
                 // And event listeners
                 window?.GoPixel.kill();
                 hideBanner();
@@ -44,7 +44,7 @@
         document.querySelector('.cookie-consent-banner').style.display = 'none';
     }
 </script>
-<!-- End of GoPixel tracking script -->
+<!-- End of Tracker tracking script -->
 
 <!-- Product Page Content -->
 <div class="container">
